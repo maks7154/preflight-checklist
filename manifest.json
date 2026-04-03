@@ -2,7 +2,7 @@
   "name": "Preflight Checklist",
   "short_name": "Preflight",
   "description": "Checklist for fixed-wing UAV pre-flight preparation",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#e8f0fe",
   "theme_color": "#e8f0fe",
