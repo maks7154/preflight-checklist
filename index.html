@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Preflight">
+<meta name="theme-color" content="#e8f0fe">
+<title>Preflight Checklist</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root {
+    --blue-50: #e8f4fd;
+    --blue-100: #d1e9fb;
+    --blue-200: #a8d4f7;
+    --blue-400: #4ba3e3;
+    --blue-500: #2b88d4;
+    --blue-600: #1a6fb8;
+    --green-500: #34a853;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-card-hover: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(165deg, #e8f0fe 0%, #f0f4f8 40%, #fafbfc 100%);
+    color: var(--gray-800);
+    min-height: 100dvh;
+    padding: 0 0 120px 0;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(232, 240, 254, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--gray-900);
+  }
+
+  .header-subtitle {
+    font-size: 13px;
+    color: var(--gray-500);
+    font-weight: 500;
+  }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue-400), var(--blue-500));
+    border-radius: 3px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  .progress-bar-fill.complete {
+    background: linear-gradient(90deg, #34a853, #2d9348);
+  }
+
+  .progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-600);
+    min-width: 44px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Content */
+  .content {
+    padding: 16px 16px 0;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: box-shadow var(--transition), transform var(--transition);
+    position: relative;
+    border: 1px solid rgba(0,0,0,0.03);
+  }
+
+  .section-header:active {
+    transform: scale(0.985);
+  }
+
+  .section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    color: white;
+    font-weight: 700;
+  }
+
+  .section-icon.prep { background: linear-gradient(135deg, #4ba3e3, #2b88d4); }
+  .section-icon.assembly { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .section-icon.pack { background: linear-gradient(135deg, #34a853, #2d9348); }
+
+  .section-icon.done {
+    background: linear-gradient(135deg, #34a853, #2d9348) !important;
+  }
+
+  .section-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 650;
+    color: var(--gray-900);
+    letter-spacing: -0.2px;
+  }
+
+  .section-count {
+    font-size: 13px;
+    color: var(--gray-400);
+    font-weight: 500;
+    margin-top: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--gray-400);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+
+  .section.open .section-chevron {
+    transform: rotate(180deg);
+  }
+
+  .section-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .section.open .section-body {
+    max-height: 2000px;
+  }
+
+  .section-items {
+    padding: 8px 0 0;
+  }
+
+  /* Checklist Item */
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 16px;
+    margin-bottom: 4px;
+    background: white;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.04);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: all var(--transition);
+    border: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+  }
+
+  .item:active {
+    transform: scale(0.98);
+    background: var(--gray-50);
+  }
+
+  .item.checked {
+    background: var(--blue-50);
+    border-color: rgba(43, 136, 212, 0.08);
+  }
+
+  .item.checked .item-text {
+    color: var(--gray-400);
+  }
+
+  .checkbox {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2.5px solid var(--gray-300);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .checkbox svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: white;
+  }
+
+  .item.checked .checkbox {
+    border-color: var(--blue-500);
+    background: var(--blue-500);
+    box-shadow: 0 2px 8px rgba(43, 136, 212, 0.3);
+  }
+
+  .item.checked .checkbox svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-title {
+    font-size: 15px;
+    font-weight: 650;
+    color: var(--gray-900);
+    line-height: 1.4;
+    transition: color var(--transition);
+  }
+
+  .item.checked .item-title {
+    color: var(--gray-400);
+  }
+
+  .item-desc {
+    font-size: 13px;
+    font-weight: 450;
+    color: var(--gray-500);
+    line-height: 1.4;
+    margin-top: 2px;
+    transition: color var(--transition);
+  }
+
+  .item.checked .item-desc {
+    color: var(--gray-400);
+  }
+
+  /* Reset Button */
+  .reset-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    background: rgba(250, 251, 252, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+  }
+
+  .reset-btn {
+    width: 100%;
+    max-width: 540px;
+    padding: 16px 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: -0.1px;
+    -webkit-user-select: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--gray-900);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .reset-btn:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  .reset-btn.all-done {
+    background: linear-gradient(135deg, #34a853, #2d9348);
+    box-shadow: 0 2px 12px rgba(52, 168, 83, 0.3);
+  }
+
+  .reset-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Info card */
+  .info-card {
+    padding: 16px 18px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(0,0,0,0.03);
+    margin-bottom: 16px;
+  }
+
+  .info-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .info-desc {
+    font-size: 14px;
+    font-weight: 450;
+    color: var(--gray-500);
+    line-height: 1.5;
+  }
+
+  /* Complete overlay */
+  .complete-banner {
+    display: none;
+    margin-bottom: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #dcfce7, #d1fae5);
+    border-radius: var(--radius);
+    text-align: center;
+    border: 1px solid rgba(52, 168, 83, 0.15);
+    animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .complete-banner.visible { display: block; }
+
+  .complete-banner-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  .complete-banner h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #166534;
+    margin-bottom: 4px;
+  }
+
+  .complete-banner p {
+    font-size: 14px;
+    color: #15803d;
+    font-weight: 500;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Ripple on check */
+  @keyframes checkPulse {
+    0% { box-shadow: 0 0 0 0 rgba(43, 136, 212, 0.4); }
+    100% { box-shadow: 0 0 0 12px rgba(43, 136, 212, 0); }
+  }
+
+  .item.just-checked .checkbox {
+    animation: checkPulse 0.4s ease-out;
+  }
+
+  /* Smooth section counter transition */
+  .section-count .done-num {
+    display: inline-block;
+    transition: transform 0.2s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Preflight</h1>
+      <div class="header-subtitle">Checklist БПЛА</div>
+    </div>
+    <div class="progress-text" id="progressText">0/20</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="content">
+  <div class="info-card">
+    <div class="info-title">Комплектність</div>
+    <div class="info-desc">Фюзеляж, ліва консоль, права консоль, трубки карбонові, інструкція, акумуляторна батарея</div>
+  </div>
+
+</div>
+
+<div class="reset-wrap">
+  <button class="reset-btn" id="resetBtn" onclick="resetAll()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    Новий борт
+  </button>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: 'prep',
+    title: 'Підготовка',
+    icon: 'prep',
+    items: [
+      'Корпус — Без механічних пошкоджень та дефектів',
+      'Серво хвоста та крил — Гвинти затягнуті, кабанчики обрізані',
+      'Польотний контролер — Роз\'єми підключені коректно, зафіксований',
+      'Лінії балансування — Маркування центру мас на крилах',
+      'Компас на крилі — Кут коректний',
+      'Шайби викосу двигуна — На місці',
+      'Роз\'єми до політного контролера та на крилах — Візуальний огляд',
+      'Гвинт — Встановлений коректно, кріплення надійне',
+      'Антени, приймачі, передавачі (керування + відео) — Кріплення та розташування'
+    ]
+  },
+  {
+    id: 'assembly',
+    title: 'Збирання',
+    icon: 'assembly',
+    items: [
+      'Кріплення крил до корпусу — Фіксується 4 кріпленнями',
+      'АКБ — Повний заряд, кріплення без люфтів',
+      'Біпер — Відпрацьовує коректно після подачі живлення',
+      'Відеосистема — Зображення є, якість ОК',
+      'OSD — Всі елементи відображаються',
+      'Механізація хвоста — Ліво/право, вгору/вниз',
+      'Механізація крил — Ручка вліво → лівий елерон вгору, правий вниз',
+      'Режим стабілізації (Angle) — Яке крило ближче до землі, на тому серво донизу',
+      'Сервопривід камери — Кут коректний',
+      'Двигун — Обертання за годинниковою, без сторонніх звуків',
+      'Плата ініціації — Спрацьовує, встановити запобіжник'
+    ]
+  },
+];
+
+const TOTAL = DATA.reduce((s, sec) => s + sec.items.length, 0);
+let state = loadState();
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('preflight-state');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return { checked: {}, openSections: { prep: true, assembly: false, pack: false } };
+}
+
+function saveState() {
+  localStorage.setItem('preflight-state', JSON.stringify(state));
+}
+
+function getCheckedCount() {
+  return Object.values(state.checked).filter(Boolean).length;
+}
+
+function getSectionChecked(sectionId) {
+  return DATA.find(s => s.id === sectionId).items
+    .filter((_, i) => state.checked[`${sectionId}-${i}`]).length;
+}
+
+function updateProgress() {
+  const count = getCheckedCount();
+  const pct = Math.round((count / TOTAL) * 100);
+  document.getElementById('progressText').textContent = `${count}/${TOTAL}`;
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+
+  if (count === TOTAL) {
+    bar.classList.add('complete');
+    document.getElementById('resetBtn').classList.add('all-done');
+  } else {
+    bar.classList.remove('complete');
+    document.getElementById('resetBtn').classList.remove('all-done');
+  }
+
+  // Update section counters
+  DATA.forEach(sec => {
+    const el = document.getElementById(`count-${sec.id}`);
+    if (el) {
+      const done = getSectionChecked(sec.id);
+      el.textContent = `${done} / ${sec.items.length}`;
+    }
+    // Update section icon
+    const iconEl = document.getElementById(`icon-${sec.id}`);
+    if (iconEl) {
+      const done = getSectionChecked(sec.id);
+      if (done === sec.items.length) {
+        iconEl.classList.add('done');
+        iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      } else {
+        iconEl.classList.remove('done');
+        const num = sec.id === 'prep' ? '1' : sec.id === 'assembly' ? '2' : '3';
+        iconEl.textContent = num;
+      }
+    }
+  });
+}
+
+function toggleSection(sectionId) {
+  state.openSections[sectionId] = !state.openSections[sectionId];
+  const el = document.getElementById(`section-${sectionId}`);
+  if (state.openSections[sectionId]) {
+    el.classList.add('open');
+  } else {
+    el.classList.remove('open');
+  }
+  saveState();
+}
+
+function toggleItem(sectionId, index) {
+  const key = `${sectionId}-${index}`;
+  state.checked[key] = !state.checked[key];
+
+  const itemEl = document.getElementById(`item-${key}`);
+  if (state.checked[key]) {
+    itemEl.classList.add('checked', 'just-checked');
+    setTimeout(() => itemEl.classList.remove('just-checked'), 400);
+  } else {
+    itemEl.classList.remove('checked');
+  }
+
+  updateProgress();
+  saveState();
+}
+
+function resetAll() {
+  if (getCheckedCount() === 0) return;
+
+  state.checked = {};
+  document.querySelectorAll('.item.checked').forEach(el => {
+    el.classList.remove('checked');
+  });
+  updateProgress();
+  saveState();
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function render() {
+  const content = document.getElementById('content');
+  const banner = document.getElementById('completeBanner');
+
+  DATA.forEach((sec, si) => {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'section' + (state.openSections[sec.id] ? ' open' : '');
+    sectionDiv.id = `section-${sec.id}`;
+
+    const num = si + 1;
+    const checked = getSectionChecked(sec.id);
+    const allDone = checked === sec.items.length;
+
+    sectionDiv.innerHTML = `
+      <div class="section-header" onclick="toggleSection('${sec.id}')">
+        <div class="section-icon ${sec.icon}${allDone ? ' done' : ''}" id="icon-${sec.id}">
+          ${allDone
+            ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : num}
+        </div>
+        <div class="section-info">
+          <div class="section-title">${sec.title}</div>
+          <div class="section-count"><span id="count-${sec.id}">${checked} / ${sec.items.length}</span></div>
+        </div>
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="section-items" id="items-${sec.id}"></div>
+      </div>
+    `;
+
+    content.appendChild(sectionDiv);
+
+    const itemsContainer = document.getElementById(`items-${sec.id}`);
+    sec.items.forEach((text, i) => {
+      const key = `${sec.id}-${i}`;
+      const isChecked = state.checked[key];
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'item' + (isChecked ? ' checked' : '');
+      itemDiv.id = `item-${key}`;
+      itemDiv.onclick = () => toggleItem(sec.id, i);
+      itemDiv.innerHTML = `
+        <div class="checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="item-content">
+          <div class="item-title">${text.split(' — ')[0]}</div>
+          ${text.includes(' — ') ? `<div class="item-desc">${text.split(' — ').slice(1).join(' — ')}</div>` : ''}
+        </div>
+      `;
+      itemsContainer.appendChild(itemDiv);
+    });
+  });
+
+  updateProgress();
+}
+
+render();
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
