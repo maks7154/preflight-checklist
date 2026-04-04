@@ -665,11 +665,19 @@ function resetAll() {
 let timerInterval = null;
 
 function startTimer(btn) {
-  if (timerInterval) return;
-  let seconds = 30;
   const span = btn.querySelector('span');
+
+  // Reset if running or done
+  if (timerInterval || btn.classList.contains('done')) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    btn.classList.remove('running', 'done');
+    span.textContent = '30 сек';
+    return;
+  }
+
+  let seconds = 30;
   btn.classList.add('running');
-  btn.classList.remove('done');
   span.textContent = '30';
 
   timerInterval = setInterval(() => {
@@ -682,10 +690,6 @@ function startTimer(btn) {
       btn.classList.add('done');
       span.textContent = 'Готово!';
       if (navigator.vibrate) navigator.vibrate(200);
-      setTimeout(() => {
-        btn.classList.remove('done');
-        span.textContent = '30 сек';
-      }, 3000);
     }
   }, 1000);
 }
