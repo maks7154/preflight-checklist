@@ -572,7 +572,7 @@ function loadState() {
     const saved = localStorage.getItem('preflight-state');
     if (saved) return JSON.parse(saved);
   } catch(e) {}
-  return { checked: {}, openSections: { prep: true, assembly: false, pack: false } };
+  return { checked: {}, openSections: { prep: true, assembly: true } };
 }
 
 function saveState() {
