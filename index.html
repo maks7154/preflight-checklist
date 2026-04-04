@@ -329,10 +329,13 @@
     cursor: pointer;
     background: var(--blue-50);
     color: var(--blue-600);
+    border: 1.5px solid var(--blue-200);
     transition: all var(--transition);
     -webkit-user-select: none;
     user-select: none;
     font-variant-numeric: tabular-nums;
+    min-width: 110px;
+    justify-content: center;
   }
 
   .timer-btn:active {
@@ -342,11 +345,13 @@
   .timer-btn.running {
     background: var(--blue-500);
     color: white;
+    border-color: var(--blue-500);
   }
 
   .timer-btn.done {
     background: #dcfce7;
     color: #166534;
+    border-color: #86efac;
   }
 
   .timer-btn svg {
