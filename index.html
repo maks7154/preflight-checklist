@@ -716,7 +716,9 @@ function toggleItem(sectionId, index) {
 function resetAll() {
   if (getCheckedCount() === 0) return;
   state.checked = {};
+  state.openSections = { prep: true, assembly: true };
   document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
+  document.querySelectorAll('.section').forEach(el => el.classList.add('open'));
   updateProgress();
   saveState();
   window.scrollTo({ top: 0, behavior: 'smooth' });
