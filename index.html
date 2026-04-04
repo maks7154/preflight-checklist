@@ -85,6 +85,39 @@
     font-weight: 500;
   }
 
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+
+  .lang-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all var(--transition);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .lang-btn.active {
+    background: white;
+    color: var(--gray-900);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
   .progress-wrap {
     display: flex;
     align-items: center;
@@ -167,7 +200,6 @@
 
   .section-icon.prep { background: linear-gradient(135deg, #4ba3e3, #2b88d4); }
   .section-icon.assembly { background: linear-gradient(135deg, #f59e0b, #d97706); }
-  .section-icon.pack { background: linear-gradient(135deg, #34a853, #2d9348); }
 
   .section-icon.done {
     background: linear-gradient(135deg, #34a853, #2d9348) !important;
@@ -322,7 +354,6 @@
     gap: 6px;
     margin-top: 8px;
     padding: 8px 16px;
-    border: none;
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
@@ -437,43 +468,6 @@
     line-height: 1.5;
   }
 
-  /* Complete overlay */
-  .complete-banner {
-    display: none;
-    margin-bottom: 16px;
-    padding: 20px;
-    background: linear-gradient(135deg, #dcfce7, #d1fae5);
-    border-radius: var(--radius);
-    text-align: center;
-    border: 1px solid rgba(52, 168, 83, 0.15);
-    animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .complete-banner.visible { display: block; }
-
-  .complete-banner-icon {
-    font-size: 36px;
-    margin-bottom: 8px;
-  }
-
-  .complete-banner h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #166534;
-    margin-bottom: 4px;
-  }
-
-  .complete-banner p {
-    font-size: 14px;
-    color: #15803d;
-    font-weight: 500;
-  }
-
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   /* Ripple on check */
   @keyframes checkPulse {
     0% { box-shadow: 0 0 0 0 rgba(43, 136, 212, 0.4); }
@@ -483,12 +477,6 @@
   .item.just-checked .checkbox {
     animation: checkPulse 0.4s ease-out;
   }
-
-  /* Smooth section counter transition */
-  .section-count .done-num {
-    display: inline-block;
-    transition: transform 0.2s ease;
-  }
 </style>
 </head>
 <body>
@@ -497,9 +485,15 @@
   <div class="header-top">
     <div>
       <h1>Preflight</h1>
-      <div class="header-subtitle">Checklist БПЛА</div>
+      <div class="header-subtitle" id="headerSubtitle"></div>
     </div>
-    <div class="progress-text" id="progressText">0/23</div>
+    <div class="header-right">
+      <div class="lang-toggle">
+        <button class="lang-btn" id="langUk" onclick="setLang('uk')">UA</button>
+        <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="progress-text" id="progressText"></div>
+    </div>
   </div>
   <div class="progress-wrap">
     <div class="progress-bar-bg">
@@ -508,64 +502,125 @@
   </div>
 </div>
 
-<div class="content" id="content">
-  <div class="info-card">
-    <div class="info-title">Комплектність</div>
-    <div class="info-desc">Фюзеляж, ліва консоль, права консоль, трубки карбонові, інструкція, акумуляторна батарея</div>
-  </div>
-
-</div>
+<div class="content" id="content"></div>
 
 <div class="reset-wrap">
   <button class="reset-btn" id="resetBtn" onclick="resetAll()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-    Новий борт
+    <span id="resetLabel"></span>
   </button>
 </div>
 
 <script>
-const DATA = [
-  {
-    id: 'prep',
-    title: 'Підготовка',
-    icon: 'prep',
-    items: [
-      'Корпус — Без механічних пошкоджень та дефектів',
-      'Серво хвоста та крил — Гвинти затягнуті, кабанчики обрізані',
-      'Польотний контролер — Роз\'єми підключені коректно, зафіксований',
-      'Лінії балансування — Маркування центру мас на крилах',
-      'Компас на крилі — Кут коректний',
-      'Шайби викосу двигуна — На місці',
-      'Роз\'єми до політного контролера та на крилах — Візуальний огляд',
-      'Гвинт — Встановлений коректно, кріплення надійне',
-      'Антени, приймачі, передавачі (керування + відео) — Кріплення та розташування'
+const I18N = {
+  uk: {
+    subtitle: 'Checklist БПЛА',
+    resetBtn: 'Новий борт',
+    done: 'Готово!',
+    sec: 'сек',
+    min: 'хв',
+    infoTitle: 'Комплектність',
+    infoDesc: 'Фюзеляж, ліва консоль, права консоль, трубки карбонові, інструкція, акумуляторна батарея',
+    sections: [
+      {
+        id: 'prep',
+        title: 'Підготовка',
+        icon: 'prep',
+        items: [
+          ['Корпус', 'Без механічних пошкоджень та дефектів'],
+          ['Серво хвоста та крил', 'Гвинти затягнуті, кабанчики обрізані'],
+          ['Польотний контролер', 'Роз\'єми підключені коректно, зафіксований'],
+          ['Лінії балансування', 'Маркування центру мас на крилах'],
+          ['Компас на крилі', 'Кут коректний'],
+          ['Шайби викосу двигуна', 'На місці'],
+          ['Роз\'єми до політного контролера та на крилах', 'Візуальний огляд'],
+          ['Гвинт', 'Встановлений коректно, кріплення надійне'],
+          ['Антени, приймачі, передавачі (керування + відео)', 'Кріплення та розташування']
+        ]
+      },
+      {
+        id: 'assembly',
+        title: 'Збирання',
+        icon: 'assembly',
+        items: [
+          ['Кріплення крил до корпусу', 'Фіксується 4 кріпленнями'],
+          ['АКБ', 'Повний заряд, кріплення без люфтів'],
+          ['Пульт', 'Батарея пульта більше 7.6V, всі стіки від себе'],
+          ['Біпер', 'Відпрацьовує коректно після подачі живлення'],
+          ['Відеосистема', 'Зображення є, якість ОК'],
+          ['Сервопривід камери', 'Кут коректний'],
+          ['OSD', 'Всі елементи відображаються'],
+          ['Механізація хвоста', 'Ліво/право, вгору/вниз'],
+          ['Механізація крил', 'Ручка вліво → лівий елерон вгору, правий вниз'],
+          ['Режим стабілізації (Angle)', 'Яке крило ближче до землі, на тому серво донизу'],
+          ['Двигун', 'Обертання за годинниковою, без сторонніх звуків'],
+          ['Перевірка Norda', 'Перевірка захоплення цілі та оновлення цілі'],
+          ['Калібрування компаса', 'Правий стік вниз, лівий вверх і вправо, 30 секунд калібрування'],
+          ['Плата ініціації', 'Спрацьовує, встановити запобіжник']
+        ]
+      }
     ]
   },
-  {
-    id: 'assembly',
-    title: 'Збирання',
-    icon: 'assembly',
-    items: [
-      'Кріплення крил до корпусу — Фіксується 4 кріпленнями',
-      'АКБ — Повний заряд, кріплення без люфтів',
-      'Пульт — Батарея пульта більше 7.6V, всі стіки від себе',
-      'Біпер — Відпрацьовує коректно після подачі живлення',
-      'Відеосистема — Зображення є, якість ОК',
-      'Сервопривід камери — Кут коректний',
-      'OSD — Всі елементи відображаються',
-      'Механізація хвоста — Ліво/право, вгору/вниз',
-      'Механізація крил — Ручка вліво → лівий елерон вгору, правий вниз',
-      'Режим стабілізації (Angle) — Яке крило ближче до землі, на тому серво донизу',
-      'Двигун — Обертання за годинниковою, без сторонніх звуків',
-      'Перевірка Norda — Перевірка захоплення цілі та оновлення цілі',
-      'Калібрування компаса — Правий стік вниз, лівий вверх і вправо, 30 секунд калібрування',
-      'Плата ініціації — Спрацьовує, встановити запобіжник'
+  en: {
+    subtitle: 'UAV Checklist',
+    resetBtn: 'New aircraft',
+    done: 'Done!',
+    sec: 'sec',
+    min: 'min',
+    infoTitle: 'Kit contents',
+    infoDesc: 'Fuselage, left wing console, right wing console, carbon tubes, manual, battery',
+    sections: [
+      {
+        id: 'prep',
+        title: 'Preparation',
+        icon: 'prep',
+        items: [
+          ['Fuselage', 'No mechanical damage or manufacturing defects'],
+          ['Tail & wing servos', 'Screws tightened, control horns trimmed'],
+          ['Flight controller', 'Connectors plugged in correctly, secured'],
+          ['Balance lines', 'Center of gravity markings on wings'],
+          ['Wing compass', 'Angle is correct'],
+          ['Motor mount shims', 'In place'],
+          ['Connectors to FC and on wings', 'Visual inspection'],
+          ['Propeller', 'Installed correctly, mount secure'],
+          ['Antennas, receivers, transmitters (control + video)', 'Mounting and positioning']
+        ]
+      },
+      {
+        id: 'assembly',
+        title: 'Assembly',
+        icon: 'assembly',
+        items: [
+          ['Wing attachment', 'Secured with 4 fasteners'],
+          ['Battery', 'Fully charged, mount without play'],
+          ['Remote controller', 'Battery above 7.6V, all sticks pushed away'],
+          ['Buzzer', 'Works correctly after power on'],
+          ['Video system', 'Image present, quality OK'],
+          ['Camera servo', 'Angle is correct'],
+          ['OSD', 'All elements displayed'],
+          ['Tail control surfaces', 'Left/right, up/down'],
+          ['Wing control surfaces', 'Stick left → left aileron up, right down'],
+          ['Stabilization mode (Angle)', 'Wing closer to ground has servo down'],
+          ['Motor', 'Rotates clockwise, no unusual sounds'],
+          ['Norda check', 'Target acquisition and target update verified'],
+          ['Compass calibration', 'Right stick down, left stick up and right, 30 seconds calibration'],
+          ['Initiation board', 'Fires correctly, install safety fuse']
+        ]
+      }
     ]
-  },
-];
+  }
+};
 
-const TOTAL = DATA.reduce((s, sec) => s + sec.items.length, 0);
-let state = loadState();
+let currentLang = localStorage.getItem('preflight-lang') || 'uk';
+
+function t() { return I18N[currentLang]; }
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('preflight-lang', lang);
+  document.documentElement.lang = lang;
+  rebuildUI();
+}
 
 function loadState() {
   try {
@@ -575,8 +630,14 @@ function loadState() {
   return { checked: {}, openSections: { prep: true, assembly: true } };
 }
 
+let state = loadState();
+
 function saveState() {
   localStorage.setItem('preflight-state', JSON.stringify(state));
+}
+
+function getTotal() {
+  return t().sections.reduce((s, sec) => s + sec.items.length, 0);
 }
 
 function getCheckedCount() {
@@ -584,18 +645,19 @@ function getCheckedCount() {
 }
 
 function getSectionChecked(sectionId) {
-  return DATA.find(s => s.id === sectionId).items
-    .filter((_, i) => state.checked[`${sectionId}-${i}`]).length;
+  const sec = t().sections.find(s => s.id === sectionId);
+  return sec.items.filter((_, i) => state.checked[`${sectionId}-${i}`]).length;
 }
 
 function updateProgress() {
+  const total = getTotal();
   const count = getCheckedCount();
-  const pct = Math.round((count / TOTAL) * 100);
-  document.getElementById('progressText').textContent = `${count}/${TOTAL}`;
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  document.getElementById('progressText').textContent = `${count}/${total}`;
   const bar = document.getElementById('progressBar');
   bar.style.width = pct + '%';
 
-  if (count === TOTAL) {
+  if (count === total && total > 0) {
     bar.classList.add('complete');
     document.getElementById('resetBtn').classList.add('all-done');
   } else {
@@ -603,14 +665,12 @@ function updateProgress() {
     document.getElementById('resetBtn').classList.remove('all-done');
   }
 
-  // Update section counters
-  DATA.forEach(sec => {
+  t().sections.forEach(sec => {
     const el = document.getElementById(`count-${sec.id}`);
     if (el) {
       const done = getSectionChecked(sec.id);
       el.textContent = `${done} / ${sec.items.length}`;
     }
-    // Update section icon
     const iconEl = document.getElementById(`icon-${sec.id}`);
     if (iconEl) {
       const done = getSectionChecked(sec.id);
@@ -619,7 +679,7 @@ function updateProgress() {
         iconEl.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
       } else {
         iconEl.classList.remove('done');
-        const num = sec.id === 'prep' ? '1' : sec.id === 'assembly' ? '2' : '3';
+        const num = sec.id === 'prep' ? '1' : '2';
         iconEl.textContent = num;
       }
     }
@@ -655,15 +715,10 @@ function toggleItem(sectionId, index) {
 
 function resetAll() {
   if (getCheckedCount() === 0) return;
-
   state.checked = {};
-  document.querySelectorAll('.item.checked').forEach(el => {
-    el.classList.remove('checked');
-  });
+  document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
   updateProgress();
   saveState();
-
-  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -676,9 +731,9 @@ function formatTime(s) {
 
 function startTimer(btn, duration) {
   const span = btn.querySelector('span');
-  const label = duration >= 60 ? Math.floor(duration / 60) + ' хв' : duration + ' сек';
+  const lang = t();
+  const label = duration >= 60 ? Math.floor(duration / 60) + ' ' + lang.min : duration + ' ' + lang.sec;
 
-  // Reset if running or done
   if (timers.has(btn) || btn.classList.contains('done')) {
     clearInterval(timers.get(btn));
     timers.delete(btn);
@@ -699,18 +754,36 @@ function startTimer(btn, duration) {
       timers.delete(btn);
       btn.classList.remove('running');
       btn.classList.add('done');
-      span.textContent = 'Готово!';
+      span.textContent = lang.done;
       if (navigator.vibrate) navigator.vibrate(200);
     }
   }, 1000);
   timers.set(btn, interval);
 }
 
-function render() {
-  const content = document.getElementById('content');
-  const banner = document.getElementById('completeBanner');
+const TIMER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
-  DATA.forEach((sec, si) => {
+function rebuildUI() {
+  const lang = t();
+
+  // Header
+  document.getElementById('headerSubtitle').textContent = lang.subtitle;
+  document.getElementById('resetLabel').textContent = lang.resetBtn;
+  document.getElementById('langUk').className = 'lang-btn' + (currentLang === 'uk' ? ' active' : '');
+  document.getElementById('langEn').className = 'lang-btn' + (currentLang === 'en' ? ' active' : '');
+
+  // Clear content
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  // Info card
+  const infoCard = document.createElement('div');
+  infoCard.className = 'info-card';
+  infoCard.innerHTML = `<div class="info-title">${lang.infoTitle}</div><div class="info-desc">${lang.infoDesc}</div>`;
+  content.appendChild(infoCard);
+
+  // Sections
+  lang.sections.forEach((sec, si) => {
     const sectionDiv = document.createElement('div');
     sectionDiv.className = 'section' + (state.openSections[sec.id] ? ' open' : '');
     sectionDiv.id = `section-${sec.id}`;
@@ -736,35 +809,35 @@ function render() {
         <div class="section-items" id="items-${sec.id}"></div>
       </div>
     `;
-
     content.appendChild(sectionDiv);
 
     const itemsContainer = document.getElementById(`items-${sec.id}`);
-    sec.items.forEach((text, i) => {
+    sec.items.forEach(([title, desc], i) => {
       const key = `${sec.id}-${i}`;
       const isChecked = state.checked[key];
       const itemDiv = document.createElement('div');
       itemDiv.className = 'item' + (isChecked ? ' checked' : '');
       itemDiv.id = `item-${key}`;
       itemDiv.onclick = () => toggleItem(sec.id, i);
+
+      const isCompass = title.includes('компаса') || title.includes('Compass');
+      const isInitiation = title.includes('ініціації') || title.includes('Initiation');
+
+      let timerHtml = '';
+      if (isCompass) {
+        timerHtml = `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 30)">${TIMER_ICON}<span>30 ${lang.sec}</span></button></div>`;
+      } else if (isInitiation) {
+        timerHtml = `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 60)">${TIMER_ICON}<span>1 ${lang.min}</span></button><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 30)">${TIMER_ICON}<span>30 ${lang.sec}</span></button></div>`;
+      }
+
       itemDiv.innerHTML = `
         <div class="checkbox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div class="item-content">
-          <div class="item-title">${text.split(' — ')[0]}</div>
-          ${text.includes(' — ') ? `<div class="item-desc">${text.split(' — ').slice(1).join(' — ')}</div>` : ''}
-          ${text.startsWith('Калібрування компаса') ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 30)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>30 сек</span>
-          </button></div>` : ''}
-          ${text.startsWith('Плата ініціації') ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 60)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>1 хв</span>
-          </button><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 30)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>30 сек</span>
-          </button></div>` : ''}
+          <div class="item-title">${title}</div>
+          ${desc ? `<div class="item-desc">${desc}</div>` : ''}
+          ${timerHtml}
         </div>
       `;
       itemsContainer.appendChild(itemDiv);
@@ -774,9 +847,8 @@ function render() {
   updateProgress();
 }
 
-render();
+rebuildUI();
 
-// Register Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
