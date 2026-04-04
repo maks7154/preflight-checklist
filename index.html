@@ -667,36 +667,43 @@ function resetAll() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-let timerInterval = null;
+const timers = new Map();
 
-function startTimer(btn) {
+function formatTime(s) {
+  if (s >= 60) return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  return s;
+}
+
+function startTimer(btn, duration) {
   const span = btn.querySelector('span');
+  const label = duration >= 60 ? Math.floor(duration / 60) + ' хв' : duration + ' сек';
 
   // Reset if running or done
-  if (timerInterval || btn.classList.contains('done')) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+  if (timers.has(btn) || btn.classList.contains('done')) {
+    clearInterval(timers.get(btn));
+    timers.delete(btn);
     btn.classList.remove('running', 'done');
-    span.textContent = '30 сек';
+    span.textContent = label;
     return;
   }
 
-  let seconds = 30;
+  let seconds = duration;
   btn.classList.add('running');
-  span.textContent = '30';
+  span.textContent = formatTime(seconds);
 
-  timerInterval = setInterval(() => {
+  const interval = setInterval(() => {
     seconds--;
-    span.textContent = seconds;
+    span.textContent = formatTime(seconds);
     if (seconds <= 0) {
-      clearInterval(timerInterval);
-      timerInterval = null;
+      clearInterval(interval);
+      timers.delete(btn);
       btn.classList.remove('running');
       btn.classList.add('done');
       span.textContent = 'Готово!';
       if (navigator.vibrate) navigator.vibrate(200);
     }
   }, 1000);
+  timers.set(btn, interval);
 }
 
 function render() {
@@ -747,10 +754,17 @@ function render() {
         <div class="item-content">
           <div class="item-title">${text.split(' — ')[0]}</div>
           ${text.includes(' — ') ? `<div class="item-desc">${text.split(' — ').slice(1).join(' — ')}</div>` : ''}
-          ${text.startsWith('Калібрування компаса') ? `<button class="timer-btn" id="timerBtn" onclick="event.stopPropagation(); startTimer(this)">
+          ${text.startsWith('Калібрування компаса') ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 30)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span>30 сек</span>
-          </button>` : ''}
+          </button></div>` : ''}
+          ${text.startsWith('Плата ініціації') ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 60)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>1 хв</span>
+          </button><button class="timer-btn" onclick="event.stopPropagation(); startTimer(this, 30)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>30 сек</span>
+          </button></div>` : ''}
         </div>
       `;
       itemsContainer.appendChild(itemDiv);
