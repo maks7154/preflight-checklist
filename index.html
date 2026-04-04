@@ -719,6 +719,14 @@ function resetAll() {
   state.openSections = { prep: true, assembly: true };
   document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
   document.querySelectorAll('.section').forEach(el => el.classList.add('open'));
+  timers.forEach((interval) => clearInterval(interval));
+  timers.clear();
+  document.querySelectorAll('.timer-btn').forEach(btn => {
+    btn.classList.remove('running', 'done');
+    const duration = btn.onclick.toString().includes('60') ? 60 : 30;
+    const lang = t();
+    btn.querySelector('span').textContent = duration >= 60 ? '1 ' + lang.min : duration + ' ' + lang.sec;
+  });
   updateProgress();
   saveState();
   window.scrollTo({ top: 0, behavior: 'smooth' });
